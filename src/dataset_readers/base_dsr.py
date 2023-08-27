@@ -21,7 +21,11 @@ def _encode_field(example, idx, **kwargs):
 
 
 def encode_field(tokenizer, dataset_wrapper, field, truncation):
-    remove_columns = [col for col in dataset_wrapper.dataset.column_names]
+    try:
+        remove_columns = [col for col in dataset_wrapper.dataset["train"].column_names]
+        dataset_wrapper.dataset = dataset_wrapper.dataset["train"]
+    except:
+        remove_columns = [col for col in dataset_wrapper.dataset.column_names]
     encoded_dataset = dataset_wrapper.dataset.map(
         _encode_field,
         load_from_cache_file=False,

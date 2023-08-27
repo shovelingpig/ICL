@@ -14,7 +14,7 @@ from src.metrics import get_metric
 from src.utils.collators import DataCollatorWithPaddingAndCuda
 from src.utils.statistics import show_statistics
 from src.models.api_client import run_api
-from src.utils.misc import parallel_run, save_json
+from src.utils.misc import parallel_run, save_json, set_random_seed
 from src.models.model import ppl_generate
 
 logger = logging.getLogger(__name__)
@@ -104,13 +104,12 @@ class Inferencer:
         for path in glob.glob(f"{self.output_file}tmp_*.bin"):
             with open(path) as f:
                 data.extend(json.load(f))
-        # from src.utils.misc import load_json
-        # data = load_json(self.output_file)
+        save_json(self.output_file, data)
         preds = [i['generated'] for i in data]
         metric = self.evaluator.evaluate(preds, data)
         logger.info(f"metric: {str(metric)}")
-
-        save_json(self.output_file, data)
+        metric_file = self.output_file.replace("pred.json", "metric.json")
+        save_json(metric_file, metric)
 
         for path in glob.glob(f"{self.output_file}tmp_*.bin"):
             os.remove(path)
@@ -145,7 +144,6 @@ class APInferencer(Inferencer):
                 logger.info('\n***\n'.join([str(i) for i in response][:3]))
             entry['metadata']['generated'] = response[0]['text']
             data.append(entry['metadata'])
-
         save_json(self.output_file, data)
 
         avg_ice_num = sum([len(i['ice_prompts_list']) for i in data])/len(data)
@@ -153,12 +151,14 @@ class APInferencer(Inferencer):
         preds = [i['generated'] for i in data]
         metric = self.evaluator.evaluate(preds, data)
         logger.info(f"metric: {str(metric)}")
+        metric_file = self.output_file.replace("pred.json", "metric.json")
+        save_json(metric_file, {"metric": str(metric)})
 
 
 @hydra.main(config_path="configs", config_name="inferencer")
 def main(cfg):
     logger.info(cfg)
-    set_seed(43)
+    set_random_seed(43)
     if cfg.model_config.model_type == 'hf':
         accelerator = Accelerator()
         inferencer = Inferencer(cfg, accelerator)

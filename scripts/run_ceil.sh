@@ -53,7 +53,7 @@ do
 
 
   scored_file=${run_dir}/scored.json
-  accelerate launch --num_processes ${gpu} --main_process_port ${port}  scorer.py \
+  accelerate launch --multi_gpu --num_processes ${gpu} --main_process_port ${port}  scorer.py \
       hydra.run.dir=${run_dir}/scorer \
       task_name=${task_name} \
       output_file=${scored_file} \
@@ -66,7 +66,7 @@ do
 
   run_name=base-mg0.02-s${scale_factor}-fix
   run_dir=${run_dir}/${run_name}
-  accelerate launch --num_processes ${gpu} --main_process_port ${port}  retriever_trainer.py \
+  accelerate launch --multi_gpu --num_processes ${gpu} --main_process_port ${port}  retriever_trainer.py \
       hydra.run.dir=${run_dir}/trainer \
       task_name=${task_name} \
       pair_wise=true \
@@ -102,7 +102,7 @@ do
 
 
   pred_file=${run_dir}/pred.json
-  accelerate launch --num_processes ${gpu} --main_process_port ${port}  inferencer.py \
+  accelerate launch --multi_gpu --num_processes ${gpu} --main_process_port ${port}  inferencer.py \
       hydra.run.dir=${run_dir}/inferencer \
       task_name=${task_name} \
       dataset_reader.dataset_path=${retrieve_file} \

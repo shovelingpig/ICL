@@ -1,7 +1,7 @@
 from src.utils.misc import parallel_run
 import regex as re
 import sys
-sys.path.append("third_party")
+sys.path.append("/home/alan-k/workspace/fork/ICL/qdecomp_with_dependency_graphs")
 
 from qdecomp_with_dependency_graphs.dependencies_graph.evaluation.logical_form_matcher import \
     LogicalFromStructuralMatcher
