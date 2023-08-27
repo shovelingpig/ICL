@@ -10,6 +10,9 @@ output_file: ???                # predictions will be saved to `output_file`
 
 batch_size: 8                  # the batch_size of the model when using `hf-gen_a` model_config; for api models, the batch size is decided based on the number of openai keys.
 
+# for advanced scorer
+advanced_scoring: false        # whether to use advanced scorer
+
 # parameters needed to initialize the inference dataset reader
 dataset_reader:
   _target_: src.dataset_readers.inference_dsr.InferenceDatasetReader
@@ -21,6 +24,7 @@ dataset_reader:
   field: gen_a                  # this field will be used to construct prompt
   ds_size: null                # number of instances used for the dataset, 'null' refers to 'all'
   index_reader: ${index_reader}
+  advanced_scoring: ${advanced_scoring}
 
 # parameters needed to initialize the index reader
 index_reader:
