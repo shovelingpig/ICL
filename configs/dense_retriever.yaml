@@ -11,6 +11,9 @@ model_name: 'bert-base-uncased'  # model used to encode 'field' for each index i
 faiss_index: ???                 # if file exists, the encoded index data will be directly loaded
 pretrained_model_path: null      # the local pretrained encoder to load, load `model_name` if is null
 
+# for advanced scorer
+advanced_scoring: false          # whether to use advanced scorer
+
 # DPP-related arguments
 dpp_search: false                # whether to employ DPP search that considers diversity between ices
 dpp_topk: 100                    # the number to retrieve by TopK in the first stage of DPP
