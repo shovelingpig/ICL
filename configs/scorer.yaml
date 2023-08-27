@@ -10,6 +10,8 @@ output_file: ???                # predictions will be saved to `output_file`
 
 batch_size: 48                  # the batch_size of the model when using `hf-gen_a` model_config; for api models, the batch size is decided based on the number of openai keys.
 
+save_score: false
+
 # parameters needed to initialize the inference dataset reader
 dataset_reader:
   _target_: src.dataset_readers.scoring_dsr.ScorerDatasetReader

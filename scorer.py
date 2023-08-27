@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class Scorer(Inferencer):
+    def __init__(self, cfg, accelerator=None) -> None:
+        super(Scorer, self).__init__(cfg, accelerator)
+        self.save_score = cfg.save_score
 
     def forward(self):
         if self.accelerator.is_main_process:
@@ -94,7 +97,10 @@ class Scorer(Inferencer):
             assert len(entry['ctxs_candidates']) == num_candidates, f"{len(entry['ctxs_candidates'])}!={num_candidates}"
 
             sorted_tuple = sorted(enumerate(entry['ctxs_candidates']), key=lambda x: x[1]['score'])
-            entry['ctxs_candidates'] = [i[1]['ctxs'] for i in sorted_tuple]
+            if self.save_score:
+                entry['ctxs_candidates'] = [i[1] for i in sorted_tuple]
+            else:
+                entry['ctxs_candidates'] = [i[1]['ctxs'] for i in sorted_tuple]
             entry['ctxs'] = entry['ctxs_candidates'][0]  # set top-scored cand to ctxs
             mrr += 1/([i[0] for i in sorted_tuple].index(0)+1)
         logger.info(f"MRR: {mrr/len(example_list)}")
