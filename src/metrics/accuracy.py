@@ -92,7 +92,15 @@ class Accuracy(datasets.Metric):
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html"],
         )
 
-    def _compute(self, predictions, references, normalize=True, sample_weight=None):
+    def _compute(self, predictions, references, normalize=True, sample_weight=None, batch=False):
+        if batch:
+            acc_list = []
+            for i in range(len(sample_weight)):
+                acc = accuracy_score(references[i], predictions[i], normalize=normalize, sample_weight=sample_weight[i])
+                acc_list.append(float(acc))
+            return {
+                "accuracy": sum(acc_list) / len(acc_list)
+            }
         return {
             "accuracy": float(
                 accuracy_score(references, predictions, normalize=normalize, sample_weight=sample_weight)
