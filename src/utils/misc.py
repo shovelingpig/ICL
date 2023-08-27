@@ -6,6 +6,10 @@ from tqdm import tqdm
 from functools import partial
 import json
 import logging
+import random
+import numpy as np
+import torch
+from transformers import set_seed
 
 
 logger = logging.getLogger(__name__)
@@ -103,3 +107,12 @@ def load_json(file):
     with open(file) as f:
         data = json.load(f)
     return data
+
+
+def set_random_seed(random_seed):
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
+    set_seed(random_seed)
