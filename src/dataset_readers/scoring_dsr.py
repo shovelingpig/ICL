@@ -30,6 +30,21 @@ class ScorerDatasetReader(InferenceDatasetReader):
         self.dataset_wrapper.dataset = Dataset.from_pandas(df)
         self.encoded_dataset = encode_field(self.tokenizer, self.dataset_wrapper, field, truncation)
 
+    def get_ice_prompt(self, entry, prompt_len):
+        if 'ctxs' in entry:
+            ctx = [self.index_reader[i] for i in entry['ctxs']]
+
+            ice_prompts_list = [i['metadata']['text'] for i in ctx]
+            ice_lengths_list = [i['metadata']['len'] for i in ctx]
+
+            trunc_ice_prompts_list = self.truncate(prompt_len, ice_lengths_list, ice_prompts_list)
+            ice_separator = self.dataset_wrapper.ice_separator
+            ice_prompt = ice_separator.join(trunc_ice_prompts_list) + ice_separator
+        else:
+            trunc_ice_prompts_list = []
+            ice_prompt = ""
+        return ice_prompt, trunc_ice_prompts_list
+
     def __getitem__(self, index):
         entry = self.dataset_wrapper[index]
         prompt_len = self.encoded_dataset[index]['metadata']['len']
