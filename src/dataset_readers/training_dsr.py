@@ -32,7 +32,11 @@ class TrainingDatasetReader(torch.utils.data.Dataset):
         self.encoded_dataset = self.encode_field(dataset_wrapper, field)
 
     def encode_field(self, dataset_wrapper, field):
-        remove_columns = [col for col in dataset_wrapper.dataset.column_names]
+        try:
+            remove_columns = [col for col in dataset_wrapper.dataset["train"].column_names]
+            dataset_wrapper.dataset = dataset_wrapper.dataset["train"]
+        except:
+            remove_columns = [col for col in dataset_wrapper.dataset.column_names]
         encoded_dataset = dataset_wrapper.dataset.map(
             encode_field,
             load_from_cache_file=False,
