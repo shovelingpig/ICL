@@ -1,8 +1,5 @@
 #!/bin/bash
-export WANDB_PROJECT=ICL  # change if needed
-export WANDB_ENTITY=  # change to your wandb account
-export WANDB_API_KEY=  # change to your api-key
-export WANDB_START_METHOD=thread
+export WANDB_MODE=disabled
 export TOKENIZERS_PARALLELISM=false
 export HYDRA_FULL_ERROR=1
 

@@ -1,8 +1,4 @@
 #!/bin/bash
-# export WANDB_PROJECT=icl  # change if needed
-# export WANDB_ENTITY=hyperconnect  # change to your wandb account
-# export WANDB_API_KEY=feff92576de3c4da75e6b7fc8244a388bf383ba1  # change to your api-key
-# export WANDB_START_METHOD=thread
 export WANDB_MODE=disabled
 export TOKENIZERS_PARALLELISM=false
 export HYDRA_FULL_ERROR=1
