@@ -6,7 +6,7 @@ export HYDRA_FULL_ERROR=1
 gpu=2
 method=dpp-epr-random
 num_ice=50
-port=9927
+port=10038
 
 #model_name=gpt2-large
 #n_tokens=700
@@ -18,7 +18,7 @@ n_tokens=1600
 scr_batch_size=8
 inf_batch_size=8
 
-task_name=mrpc
+task_name=geoquery
 #for scale_factor in 0.01 0.05 0.1
 for scale_factor in 0.1
 do
@@ -73,8 +73,8 @@ do
       training_args.run_name=${run_name} \
       pretrained_model_path=${epr_model} \
       training_args.num_train_epochs=30 \
-      training_args.per_device_train_batch_size=64 \
-      training_args.per_device_eval_batch_size=64 \
+      training_args.per_device_train_batch_size=128 \
+      training_args.per_device_eval_batch_size=128 \
       training_args.gradient_accumulation_steps=1 \
       model_config.dpp_training=true \
       model_config.norm_embed=true \

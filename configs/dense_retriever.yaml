@@ -6,7 +6,7 @@ num_candidates: 1
 num_ice: 50
 task_name: ???
 
-batch_size: 64                   # the batch size when running encoding
+batch_size: 32                   # the batch size when running encoding
 model_name: 'bert-base-uncased'  # model used to encode 'field' for each index instance
 faiss_index: ???                 # if file exists, the encoded index data will be directly loaded
 pretrained_model_path: null      # the local pretrained encoder to load, load `model_name` if is null

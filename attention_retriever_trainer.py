@@ -34,7 +34,7 @@ class AttentionRetrieverTrainer:
             **cfg.collector,
         )
 
-        self.metric = load_metric('src/metrics/accuracy.py')
+        self.metric = load_metric('src/metrics/accuracy_revised.py')
         self.trainer = Trainer(
             model=self.model,
             args=self.training_args,

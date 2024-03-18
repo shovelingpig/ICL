@@ -151,8 +151,14 @@ def greedy_nn_retrieval(model,
 
     pred_ctx_vectors, pred_class_probs, _ = model.predict(q_vectors, ctx_vectors, ctx_indices)
     pred_class_labels = (pred_class_probs[0, :, 1] > 0.2)  # (filtered_num_ice, )
-    last_true_index = torch.where(pred_class_labels)[0][-1]
-    pred_class_labels[:last_true_index + 1] = True
+
+    # Warning!!!!!!
+    try:
+        last_true_index = torch.where(pred_class_labels)[0][-1]
+        pred_class_labels[:last_true_index + 1] = True
+    except:
+        pass
+
     filtered_pred_ctx_vectors = pred_ctx_vectors[0][pred_class_labels] # (filtered_num_ice, H)
 
     ctxs = []

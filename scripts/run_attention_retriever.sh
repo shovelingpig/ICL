@@ -4,9 +4,9 @@ export TOKENIZERS_PARALLELISM=false
 export HYDRA_FULL_ERROR=1
 
 gpu=8
-method=attention-retriever
+method=attention-retriever-using-ceil
 num_ice=100
-port=10005
+port=10003
 
 #model_name=gpt2-large
 #n_tokens=700
@@ -18,7 +18,8 @@ n_tokens=1600
 scr_batch_size=8
 inf_batch_size=8
 
-for task_name in nl2bash
+scale_factor=0.1
+for task_name in webqs
 do
   export WANDB_TAGS="${method},${task_name},${model_name}"
   run_dir=output/${method}/${task_name}/${model_name}
@@ -26,7 +27,7 @@ do
   mkdir -p ${run_dir}
   mkdir -p index_data/${task_name}
 
-  epr_model=output/epr/${task_name}/${model_name}/bert-fix_ctx-shared-bs64
+  ceil_model=output/dpp-epr-random/${task_name}/${model_name}/base-mg0.02-s0.1-fix
 
   retrieve_file=${run_dir}/retrieved.json
   python dense_retriever.py \
@@ -36,10 +37,14 @@ do
       dataset_reader.dataset_split=train \
       index_reader.dataset_path=${index_data} \
       faiss_index=${run_dir}/index \
-      pretrained_model_path=${epr_model} \
+      pretrained_model_path=${ceil_model} \
       model_config.norm_embed=true \
       advanced_scoring=true \
-      num_ice=${num_ice}
+      num_ice=${num_ice} \
+      model_config.scale_factor=${scale_factor} \
+      dpp_search=true \
+      dpp_topk=100 \
+      mode=map
 
   scored_file=${run_dir}/scored.json
   cp ${retrieve_file} ${scored_file}
@@ -64,7 +69,7 @@ do
       task_name=${task_name} \
       dataset_reader.dataset_path=${scored_file} \
       index_reader.dataset_path=${index_data} \
-      pretrained_model_path=${epr_model} \
+      pretrained_model_path=${ceil_model} \
       training_args.output_dir=${run_dir} \
       training_args.run_name=${run_name} \
       training_args.num_train_epochs=1000 \
