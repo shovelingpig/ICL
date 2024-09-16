@@ -37,6 +37,7 @@ class DenseRetriever:
         self.num_candidates = cfg.num_candidates
         self.num_ice = cfg.num_ice
         self.is_train = cfg.dataset_reader.dataset_split == "train"
+        self.advanced_scoring = cfg.advanced_scoring
 
         self.dpp_search = cfg.dpp_search
         self.dpp_topk = cfg.dpp_topk
@@ -82,7 +83,7 @@ class DenseRetriever:
             func = partial(dpp, num_candidates=self.num_candidates, num_ice=self.num_ice,
                            mode=self.mode, dpp_topk=self.dpp_topk, scale_factor=self.model.scale_factor)
         else:
-            func = partial(knn, num_candidates=self.num_candidates, num_ice=self.num_ice)
+            func = partial(knn, num_candidates=self.num_candidates, num_ice=self.num_ice, advanced_scoring=self.advanced_scoring)
         data = parallel_run(func=func, args_list=res_list, initializer=set_global_object,
                             initargs=(self.index, self.is_train))
 
@@ -96,7 +97,7 @@ def set_global_object(index, is_train):
     is_train_global = is_train
 
 
-def knn(entry, num_candidates=1, num_ice=1):
+def knn(entry, num_candidates=1, num_ice=1, advanced_scoring=False):
     embed = np.expand_dims(entry['embed'], axis=0)
     near_ids = index_global.search(embed, max(num_candidates, num_ice)+1)[1][0].tolist()
     near_ids = near_ids[1:] if is_train_global else near_ids
@@ -104,6 +105,13 @@ def knn(entry, num_candidates=1, num_ice=1):
     entry = entry['entry']
     entry['ctxs'] = near_ids[:num_ice]
     entry['ctxs_candidates'] = [[i] for i in near_ids[:num_candidates]]
+
+    if advanced_scoring:
+        entry['candidates'] = near_ids[:num_ice]
+        entry['best_permutations'] = []
+        entry['sorted_candidates'] = []
+        entry['useless_candidates'] = []
+
     return entry
 
 
