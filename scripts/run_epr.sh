@@ -1,15 +1,12 @@
 #!/bin/bash
-export WANDB_PROJECT=ICL  # change if needed
-export WANDB_ENTITY=  # change to your wandb account
-export WANDB_API_KEY=  # change to your api-key
-export WANDB_START_METHOD=thread
+export WANDB_MODE=disabled
 export TOKENIZERS_PARALLELISM=false
 export HYDRA_FULL_ERROR=1
 
 gpu=2
 method=epr
 num_ice=50
-port=5324
+port=10009
 
 #model_name=gpt2-large
 #n_tokens=700
@@ -21,7 +18,8 @@ n_tokens=1600
 scr_batch_size=8
 inf_batch_size=8
 
-for task_name in mrpc
+for task_name in break
+
 do
   export WANDB_TAGS="${method},${task_name},${model_name}"
   run_dir=output/${method}/${task_name}/${model_name}
@@ -33,7 +31,7 @@ do
   python bm25_retriever.py \
       hydra.run.dir=${run_dir}/bm25_retriever \
       output_file=${retrieve_file} \
-      num_candidates=50 \
+      num_candidates=${num_ice} \
       num_ice=1 \
       task_name=${task_name} \
       index_reader.dataset_path=${index_data} \
@@ -41,7 +39,6 @@ do
       ds_size=44000 \
       query_field=a \
       index_reader.field=a
-
 
 
   scored_file=${run_dir}/scored.json

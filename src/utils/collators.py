@@ -173,3 +173,79 @@ class IBNDataCollatorWithPadding:
                  "labels": labels
                  }
         return BatchEncoding(data=batch)
+    
+
+@dataclass
+class AttentionRetrieverDataCollator:
+    tokenizer: PreTrainedTokenizerBase
+    padding: Union[bool, str] = True
+    max_length: Optional[int] = 3000
+    pad_to_multiple_of: Optional[int] = None
+    encoded_index: List[Dict] = None
+    num_ice: int = 50
+
+    def pad(self, list_of_list):
+            padded = self.tokenizer.pad(
+                {"input_ids": list_of_list},
+                padding=True,
+                max_length=self.max_length,
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                return_attention_mask=True,
+                return_tensors="pt",
+            )
+            return padded['input_ids'], padded['attention_mask']
+
+    def pad_zero(self, input_list, target_length):
+        num_pads_needed = target_length - len(input_list)
+        return input_list + [0] * num_pads_needed
+
+    def pad_minus_one(self, input_list, target_length):
+        num_pads_needed = target_length - len(input_list)
+        return input_list + [-1] * num_pads_needed
+    
+    def __call__(self, samples: List[InputSample]) -> BatchEncoding:
+        questions_tensor = []
+        ctxs_tensor = []
+        ctx_indices = []
+        labels = []
+        delta_scores = []
+        eid2idx = {}
+
+        for sample in samples:  # num_iterations = B
+            questions_tensor.append(sample.question_ids)
+
+            indices = []
+            for eid in sample.candidates:  # num_iterations = L
+                if eid in eid2idx:
+                    indices.append(eid2idx[eid])
+                else:
+                    indices.append(len(eid2idx))
+                    eid2idx[eid] = len(eid2idx)
+                    ctxs_tensor.append(self.encoded_index[eid]['input_ids'])
+            ctx_indices.append(indices)
+
+            delta_score = [item[0] for item in sample.score_gained[:-1]]
+            delta_score = self.pad_zero(delta_score, self.num_ice)
+            delta_scores.append(delta_score)
+
+            label = [eid2idx[eid] for eid in sample.best_permutations]
+            label = self.pad_minus_one(label, self.num_ice)
+            labels.append(label)
+
+        questions_tensor, questions_attn_mask = self.pad(questions_tensor)  # (B, T)
+        ctxs_tensor, ctxs_attn_mask = self.pad(ctxs_tensor)  # (B*L', T)
+
+        labels = torch.tensor(labels)  # (B, L)
+        ctx_indices = torch.tensor(ctx_indices)  # (B, L)
+        delta_scores = torch.tensor(delta_scores)  # (B, L)
+
+        batch = {
+            "questions_tensor": questions_tensor,  # (B, T)
+            "questions_attn_mask": questions_attn_mask,  # (B, T)
+            "ctxs_tensor": ctxs_tensor,  # (B*L', T)
+            "ctxs_attn_mask": ctxs_attn_mask,  # (B*L', T)
+            "ctx_indices": ctx_indices,  # (B, L)
+            "labels": labels,  # (B, L)
+            "delta_scores": delta_scores,  # (B, L)
+        }
+        return BatchEncoding(data=batch)

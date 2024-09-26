@@ -81,7 +81,7 @@ class DenseRetriever:
         if self.dpp_search:
             logger.info(f"Using scale_factor={self.model.scale_factor}; mode={self.mode}")
             func = partial(dpp, num_candidates=self.num_candidates, num_ice=self.num_ice,
-                           mode=self.mode, dpp_topk=self.dpp_topk, scale_factor=self.model.scale_factor)
+                           mode=self.mode, dpp_topk=self.dpp_topk, scale_factor=self.model.scale_factor, advanced_scoring=self.advanced_scoring)
         else:
             func = partial(knn, num_candidates=self.num_candidates, num_ice=self.num_ice, advanced_scoring=self.advanced_scoring)
         data = parallel_run(func=func, args_list=res_list, initializer=set_global_object,
@@ -146,7 +146,7 @@ def random_sampling(num_total, num_ice, num_candidates, pre_results=None):
     return ctxs_candidates_idx
 
 
-def dpp(entry, num_candidates=1, num_ice=1, mode="map", dpp_topk=100, scale_factor=0.1):
+def dpp(entry, num_candidates=1, num_ice=1, mode="map", dpp_topk=100, scale_factor=0.1, advanced_scoring=False):
     candidates = knn(entry, num_ice=dpp_topk)['ctxs']
     embed = np.expand_dims(entry['embed'], axis=0)
     near_reps, rel_scores, kernel_matrix = get_kernel(embed, candidates, scale_factor)
@@ -188,6 +188,13 @@ def dpp(entry, num_candidates=1, num_ice=1, mode="map", dpp_topk=100, scale_fact
     entry = entry['entry']
     entry['ctxs'] = ctxs_candidates[0]
     entry['ctxs_candidates'] = ctxs_candidates
+
+    if advanced_scoring:
+        entry['candidates'] = ctxs_candidates[0]
+        entry['best_permutations'] = []
+        entry['sorted_candidates'] = []
+        entry['useless_candidates'] = []
+
     return entry
 
 
